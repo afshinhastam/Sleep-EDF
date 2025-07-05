@@ -1,0 +1,9 @@
+*.pth
+*.edf
+*.npz
+*.csv
+*.xls
+./runs/
+./checkpoints/
+./sleep_epochs_v2/
+./sleep-edf-database-expanded-1.0.0/
