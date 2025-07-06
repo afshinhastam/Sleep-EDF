@@ -21,24 +21,28 @@ def build_sequence_data(root_npz_folder,
 
     total_files = len(glob(os.path.join(root_npz_folder, "*.npz")))
     for f in tqdm(glob(os.path.join(root_npz_folder, "*.npz")), total=total_files):
-        data = np.load(f)
-        raw = data["epochs"]
-        label = data["labels"]
+        try:
+            data = np.load(f)
+            raw = data["epochs"]
+            label = data["labels"]
 
-        all_epochs = raw.shape[0] // n_epoch
+            all_epochs = raw.shape[0] // n_epoch
 
-        raw = raw[:all_epochs * n_epoch]
-        label = label[:all_epochs * n_epoch]
+            raw = raw[:all_epochs * n_epoch]
+            label = label[:all_epochs * n_epoch]
 
-        raw = sliding_window_view(raw, window_shape=n_epoch, axis=0)
-        raw = raw[::shift]
-        raw = np.transpose(raw, (0, -1, 1, 2)) 
+            raw = sliding_window_view(raw, window_shape=n_epoch, axis=0)
+            raw = raw[::shift]
+            raw = np.transpose(raw, (0, -1, 1, 2)) 
 
-        label = sliding_window_view(label, window_shape=n_epoch, axis=0)
-        label = label[::shift]
+            label = sliding_window_view(label, window_shape=n_epoch, axis=0)
+            label = label[::shift]
 
-        np.savez_compressed(os.path.join(save_npz_folder, os.path.split(f)[-1][:7]+".npz"), epochs=raw, labels=label)
-        print(os.path.join(save_npz_folder, os.path.split(f)[-1][:7]+".npz"), "saved.")
+            np.savez_compressed(os.path.join(save_npz_folder, os.path.split(f)[-1][:7]+".npz"), epochs=raw, labels=label)
+            print(os.path.join(save_npz_folder, os.path.split(f)[-1][:7]+".npz"), "saved.")
+        except Exception as e:
+            print("File:", f)
+            print(e)
 
 def build_database_info(root_npz_folder, max_files=None):
     """
