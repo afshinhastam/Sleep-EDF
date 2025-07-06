@@ -95,7 +95,15 @@ def build_epochs(local_edf_path=args.root_edf_path, save_npz_path=args.save_epoc
     PSG_name = PSG_list[i]
     Hypnogram_name = Hypnogram_list[i]
 
-    assert Hypnogram_name[:7] == PSG_name[:7]
+    if os.path.exists(os.path.join(save_npz_path, PSG_name[:7]+".npz")):
+      print("file is exist:", {os.path.join(save_npz_path, PSG_name[:7]+".npz")})
+      continue
+
+    if Hypnogram_name[:7] != PSG_name[:7]:
+      print("Error and Continue: ->", PSG_name[:7], "!=", Hypnogram_name[:7])
+      continue
+
+    # assert Hypnogram_name[:7] == PSG_name[:7]
 
     annotation = mne.read_annotations(os.path.join(local_edf_path, Hypnogram_name))
     annotation = annotation.crop(annotation[1]['onset'] - 30 * 60,

@@ -1,5 +1,5 @@
 import os
-import glob
+from glob import glob
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -47,7 +47,7 @@ def build_database_info(root_npz_folder, max_files=None):
         transform: optional transform to apply to data
         max_files: if set, only load this many files (for debugging)
     """
-    npz_files = sorted(glob.glob(os.path.join(root_npz_folder, "*.npz")))
+    npz_files = sorted(glob(os.path.join(root_npz_folder, "*.npz")))
     if max_files:
         npz_files = npz_files[:max_files]
 
@@ -200,9 +200,6 @@ def plot_hypnogram(pred_labels, true_labels, epoch_duration=30, event_id=None, t
     plt.show()
 
     plt.savefig(save_name)
-
-
-
 
 if __name__=="__main__":
     build_database_info("sleep-edf-database-expanded-1.0.0\\sleep-edf-database-expanded-1.0.0\\sleep-cassette\\sleep_epochs_windowed_v3")
