@@ -21,6 +21,9 @@ def build_sequence_data(root_npz_folder,
 
     total_files = len(glob(os.path.join(root_npz_folder, "*.npz")))
     for f in tqdm(glob(os.path.join(root_npz_folder, "*.npz")), total=total_files):
+        if os.path.exists(os.path.join(save_npz_folder, os.path.split(f)[-1][:7]+".npz")):
+            print(os.path.join(save_npz_folder, os.path.split(f)[-1][:7]+".npz"), "is exist.")
+            continue
         try:
             data = np.load(f)
             raw = data["epochs"]
@@ -51,6 +54,10 @@ def build_database_info(root_npz_folder, max_files=None):
         transform: optional transform to apply to data
         max_files: if set, only load this many files (for debugging)
     """
+    if os.path.exists(os.path.join(root_npz_folder, "info_csv.csv")):
+        print("info_csv.csv is exist in:", os.path.join(root_npz_folder, "info_csv.csv"))
+        return
+    
     npz_files = sorted(glob(os.path.join(root_npz_folder, "*.npz")))
     if max_files:
         npz_files = npz_files[:max_files]
@@ -62,11 +69,15 @@ def build_database_info(root_npz_folder, max_files=None):
     s_name = []
     with tqdm(total=len(npz_files)) as bar:
         for nf in npz_files:
-            data = np.load(nf)
-            raw = data["epochs"]
-            f_name.extend([os.path.split(nf)[-1] for i in range(raw.shape[0])])
-            f_idx.extend(list(range(raw.shape[0])))
-            s_name.extend([os.path.split(nf)[-1][3:5] for i in range(raw.shape[0])])
+            try:
+                data = np.load(nf, allow_pickle=True)
+                raw = data["labels"]
+                f_name.extend([os.path.split(nf)[-1] for i in range(raw.shape[0])])
+                f_idx.extend(list(range(raw.shape[0])))
+                s_name.extend([os.path.split(nf)[-1][3:5] for i in range(raw.shape[0])])
+            except Exception as e:
+                print("Error while building info_csv.csv file")
+                print(e)
             bar.update(1)
 
     info_csv = pd.DataFrame(np.array([f_name, f_idx, s_name]).T, columns=["file_name", "index", "subject_id"])
@@ -77,16 +88,18 @@ def build_database_info(root_npz_folder, max_files=None):
 
 class NormalDataset(Dataset):
     def __init__(self, root_npz_folder, transform=None, max_files=None):
-        data_list = glob(os.path.join(root_npz_folder, "/*.npz"))
+        data_list = glob(os.path.join(root_npz_folder, "*.npz"))
         self.X = None
         self.Y = None
+
+        print(len(data_list), "files loaded.")
 
         with tqdm(total=len(data_list), desc="Loading data") as bar:
             for i, d_l in enumerate(data_list):
                 d = np.load(d_l)
                 if self.X is None:
-                    self.X = d["epochs"]
-                    self.Y = d["labels"]
+                    self.X = d["epochs"].astype(np.float16)
+                    self.Y = d["labels"].astype(np.int16)
                 else:
                     self.X = np.stack((self.X, d["epochs"]), axis=0)
                     self.Y = np.stack((self.Y, d["labels"]), axis=0)

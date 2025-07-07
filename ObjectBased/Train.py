@@ -4,11 +4,16 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from tqdm import tqdm, trange
-from ..Utils import Utils
 import os
-import Model
 import pandas as pd
 from torch.utils.data import random_split
+
+import sys
+sys.path.append("Sleep-EDF/Utils")
+sys.path.append("Sleep-EDF/Model")
+import Model
+import Utils
+
 
 import argparse
 parser = argparse.ArgumentParser()
